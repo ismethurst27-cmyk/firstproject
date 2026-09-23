@@ -1,4 +1,6 @@
 const readline = require('readline');
+let thresholds = [];
+
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -53,30 +55,46 @@ function applyOperator(numbers, operator) {
 }
 
 async function getThreshold() {
-  const answer = await ask('What would you like the threshold to be? ');
-  return Number.parseFloat(answer);
+  const count = await ask('How many thresholds would you like? ');
+  for (let i = 0; i < Number(count); i++) {
+    const answer = await ask(`What should threshold number ${i + 1} be?: `);
+    thresholds.push(Number(answer));
+  }
 }
 
 function round(number) {
   return Number(number.toFixed(3));
 }
 
-function higherLower(list, threshold) {
-  const listHigher = [];
-  const listLower = [];
-  for (let i = 0; i < list.length; i++) {
-    list[i] >= threshold ? listHigher.push(list[i]) : listLower.push(list[i]);
-  }
-  return [listHigher, listLower];
+async function higher_lower(list, threshold) {
+    let list_higher = []
+    let list_lower = []
+    let list_length = list.length
+    for (let i=0; i<list_length; i++) {
+        list[i]>= threshold ? list_higher.push(list[i]) : list_lower.push(list[i])
+    }
+    console.log(`These are the numbers that are lower than ${threshold}: ${list_lower}`)
+    console.log(`These are the numbers that are higher than ${threshold}: ${list_higher}`)
 }
 
-function printResults(finalHigher, finalLower, threshold) {
-  const formattedHigher = finalHigher.map(round);
-  const formattedLower = finalLower.map(round);
-
-  console.log(`These are the numbers that are higher than ${round(threshold)}: ${formattedHigher}`);
-  console.log(`These are the numbers that are lower than ${round(threshold)}: ${formattedLower}`);
+ async function lower(list, threshold) {
+    let list_lower = []
+    let list_length = list.length
+    for (let i=0; i<list_length; i++) {
+        if (list[i] < threshold) {
+            list_lower.push(list[i])
+        }
+    }
+    console.log(`These are the numbers that are lower than ${threshold}: ${list_lower}`)
 }
+
+// function printResults(finalHigher, finalLower, threshold) {
+//   const formattedHigher = finalHigher.map(round);
+//   const formattedLower = finalLower.map(round);
+
+//   console.log(`These are the numbers that are higher than ${round(threshold)}: ${formattedHigher}`);
+//   console.log(`These are the numbers that are lower than ${round(threshold)}: ${formattedLower}`);
+// }
 
 async function main() {
   const numbers1 = await start();
@@ -89,12 +107,17 @@ async function main() {
     return;
   }
   console.log(`Operator is ${operator}`);
+  await getThreshold()
+  
+  thresholds.sort((a, b) => a - b)
+  for (let i = 1; i <= thresholds.length; i++) {
+        if (i == thresholds.length) {
+            higher_lower(numbers, thresholds[i - 1])
+        } else {
+            lower(numbers, thresholds[i - 1])
+        }
+  }
 
-  const threshold = await getThreshold();
-  console.log(`Threshold is ${round(threshold)}`);
-
-  const [finalHigher, finalLower] = higherLower(numbers, threshold);
-  printResults(finalHigher, finalLower, threshold);
 
   rl.close();
 }
